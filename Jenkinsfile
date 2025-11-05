@@ -20,7 +20,7 @@ pipeline {
 
     stage('Static Code Analysis (Bandit + SonarQube)') {
       agent {
-        docker { image 'python:3.11' }
+        docker { image 'python:3.11' args '-u root' }
       }
       steps {
         sh '''
