@@ -66,7 +66,7 @@ pipeline {
       emailext (
         subject: "DevSecOps Pipeline: ${currentBuild.currentResult}",
         body: "Pipeline finished with status: ${currentBuild.currentResult}. Reports attached.",
-        to: "your-email@example.com",
+        to: "yahyakaddour5@gmail.com",
         attachmentsPattern: "reports/*.html"
       )
     }
