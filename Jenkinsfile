@@ -19,7 +19,7 @@ pipeline {
                 script {
                     docker.image('python:3.11').inside('-u root') {
                         sh '''
-                            apt-get update && apt-get install -y wget unzip openjdk-17-jre
+                            apt-get update && apt-get install -y wget unzip openjdk-11-jre
                             
                             # Install Bandit
                             pip install bandit
