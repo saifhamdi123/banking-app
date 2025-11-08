@@ -40,9 +40,7 @@ pipeline {
             steps {
                 echo "Installing Python dependencies..."
                 sh '''
-                    python3 -m venv venv || true
-                    . venv/bin/activate
-                    pip install --upgrade pip
+                    python3 -m pip install --upgrade pip
                     pip install -r requirements.txt
                     pip install pytest pytest-cov pylint flake8 bandit
                 '''
@@ -58,7 +56,6 @@ pipeline {
             steps {
                 echo "Running unit tests with pytest..."
                 sh '''
-                    . venv/bin/activate
                     pytest --cov=. --cov-report=xml --cov-report=html -v || true
                 '''
             }
@@ -78,7 +75,6 @@ pipeline {
             steps {
                 echo "Running integration tests and code quality checks..."
                 sh '''
-                    . venv/bin/activate
                     pylint app.py --fail-under=7.0 --exit-zero || true
                     flake8 app.py --count --exit-zero --max-complexity=10 || true
                 '''
@@ -89,7 +85,6 @@ pipeline {
             steps {
                 echo "Running Bandit security analysis..."
                 sh '''
-                    . venv/bin/activate
                     bandit -r . -f json -o bandit-report.json || true
                     bandit -r . -f txt -o bandit-report.txt || true
                 '''
@@ -134,7 +129,6 @@ pipeline {
             steps {
                 echo "Scanning Python dependencies for vulnerabilities..."
                 sh '''
-                    . venv/bin/activate
                     pip install pip-audit
                     pip-audit --desc > pip-audit-report.txt || true
                 '''
