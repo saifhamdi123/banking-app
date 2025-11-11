@@ -43,5 +43,5 @@ USER appuser
 # Expose port
 EXPOSE 5000
 
-# Start the app
-CMD ["python", "app.py"]
+# Run Flask app
+CMD ["python", "-m", "gunicorn", "--bind", "0.0.0.0:5000", "--workers", "3", "app:app"]
