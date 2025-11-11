@@ -11,7 +11,6 @@ pipeline {
         IMAGE_NAME = "${APP_NAME}"
         SCANNER_HOME = tool 'sonar-scanner'
         SONARQUBE_SERVER = 'sonar-server'
-        EMAIL_RECIPIENT = 'yahyakaddour5@gmail.com'
         PYTHON_VERSION = '3.11'
         FLASK_PORT = '5000'
     }
@@ -283,8 +282,8 @@ pipeline {
                             </body>
                         </html>
                     """,
-                    to: '${EMAIL_RECIPIENT}',
-                    from: '${EMAIL_RECIPIENT}',
+                    to: 'yahyakaddour5@gmail.com',
+                    from: 'yahyakaddour5@gmail.com',
                     mimeType: 'text/html',
                     attachmentsPattern: 'security-reports/**'
                 )
