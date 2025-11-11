@@ -171,8 +171,20 @@ pipeline {
                     sh '''
                         docker rm -f flask-app-prod || true
                         docker run -d --name flask-app-prod -p 5000:5000 ${IMAGE_TAG}
-                        sleep 5
+                        sleep 10
+                        
+                        echo "Waiting for Flask app to be ready..."
+                        for i in {1..30}; do
+                            if curl -s http://localhost:5000 > /dev/null; then
+                                echo "Flask app is ready!"
+                                break
+                            fi
+                            echo "Attempt $i: Flask app not ready yet, waiting..."
+                            sleep 2
+                        done
+                        
                         echo "Flask app deployed and running on port 5000"
+                        docker ps -a | grep flask-app-prod
                     '''
                 }
             }
