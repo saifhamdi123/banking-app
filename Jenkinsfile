@@ -5,7 +5,7 @@ pipeline {
         APP_NAME = "banking-app"
         IMAGE_NAME = "${APP_NAME}"
         SCANNER_HOME = tool 'sonar-scanner'
-        SONARQUBE_SERVER = 'sonar-server'
+        
         PYTHON_VERSION = '3.11'
         FLASK_PORT = '5000'
     }
