@@ -1,48 +1,42 @@
 # Multi-stage build for Flask Banking App
-FROM python:3.11-slim as builder
+FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
-# Install build dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
+# Install build dependencies (only for compilation, not in final image)
+RUN apt-get update && apt-get install -y --no-install-recommends gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install Python dependencies
+# Copy requirements and install dependencies system-wide
 COPY requirements.txt .
-RUN pip install --user --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Final stage
+
+# ---- Final Stage ----
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install runtime dependencies only
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    sqlite3 \
+# Install runtime dependencies (if needed)
+RUN apt-get update && apt-get install -y --no-install-recommends sqlite3 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy Python dependencies from builder
-COPY --from=builder /root/.local /root/.local
+# Copy installed packages from builder (optional but keeps final image small)
+COPY --from=builder /usr/local /usr/local
 
-# Copy application files
+# Copy your app code
 COPY . .
 
-# Set environment variables
-ENV PATH=/root/.local/bin:$PATH \
-    PYTHONUNBUFFERED=1 \
+# Environment variables
+ENV PYTHONUNBUFFERED=1 \
     FLASK_APP=app.py
 
-# Create non-root user for security
-RUN useradd -m -u 1000 appuser && \
-    chown -R appuser:appuser /app && \
-    chown -R appuser:appuser /root/.local && \
-    ln -s /root/.local/bin/gunicorn /usr/local/bin/gunicorn
-
+# Create non-root user for better security
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
 
-# Expose port
+# Expose the Flask port
 EXPOSE 5000
 
-# Run Flask app
-CMD ["python", "-m", "gunicorn", "--bind", "0.0.0.0:5000", "--workers", "3", "app:app"]
+# Run Flask app using Gunicorn
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "3", "app:app"]
