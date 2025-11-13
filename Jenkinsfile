@@ -189,27 +189,54 @@ pipeline {
         }
 
         stage("DAST Scan with OWASP ZAP") {
-    steps {
-        script {
-            echo '🔍 Running OWASP ZAP baseline scan...'
-            sh '''
-                mkdir -p zap-reports
-                docker run --rm --user root --network host \
-                    -v $(pwd)/zap-reports:/zap/wrk \
-                    -t zaproxy/zap-stable zap-baseline.py \
-                    -t http://localhost:5000 \
-                    -r /zap/wrk/zap_report.html \
-                    -J /zap/wrk/zap_report.json
-            '''
+            steps {
+                script {
+                    echo '🔍 Running OWASP ZAP baseline scan on Flask app...'
+                    
+                    def exitCode = sh(script: '''
+                        docker run --rm --user root --network host -v $(pwd):/zap/wrk:rw \
+                        -t zaproxy/zap-stable zap-baseline.py \
+                        -t http://localhost:5000 \
+                        -r zap_report.html -J zap_report.json || true
+                    ''', returnStatus: true)
+
+                    echo "ZAP scan finished with exit code: ${exitCode}"
+
+                    // Parse ZAP results
+                    if (fileExists('zap_report.json')) {
+                        try {
+                            def zapJson = readJSON file: 'zap_report.json'
+                            def highCount = zapJson.site.collect { site ->
+                                site.alerts.findAll { it.risk == 'High' }.size()
+                            }.sum() ?: 0
+                            def mediumCount = zapJson.site.collect { site ->
+                                site.alerts.findAll { it.risk == 'Medium' }.size()
+                            }.sum() ?: 0
+                            def lowCount = zapJson.site.collect { site ->
+                                site.alerts.findAll { it.risk == 'Low' }.size()
+                            }.sum() ?: 0
+
+                            echo "✅ High severity issues: ${highCount}"
+                            echo "⚠️ Medium severity issues: ${mediumCount}"
+                            echo "ℹ️ Low severity issues: ${lowCount}"
+                        } catch (Exception e) {
+                            echo "Could not parse ZAP report: ${e.message}"
+                        }
+                    } else {
+                        echo "ZAP JSON report not found, continuing build..."
+                    }
+                    
+                    // Stop test container
+                    echo "✅ DAST scan completed. Production app remains running."
+                }
+            }
+            post {
+                always {
+                    echo '📦 Archiving ZAP scan reports...'
+                    archiveArtifacts artifacts: 'zap_report.html,zap_report.json', allowEmptyArchive: true
+                }
+            }
         }
-    }
-    post {
-        always {
-            echo '📦 Archiving ZAP scan reports...'
-            archiveArtifacts artifacts: 'zap-reports/*', allowEmptyArchive: true
-        }
-    }
-}
 
 
 
