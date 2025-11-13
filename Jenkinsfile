@@ -261,6 +261,7 @@ pipeline {
                 // Collect all security reports
                 sh '''
                     mkdir -p security-reports
+                    cp gitleaks-report/gitleaks-report.json security-reports/ 2>/dev/null || true
                     cp bandit-report.* security-reports/ 2>/dev/null || true
                     cp pip-audit-report.txt security-reports/ 2>/dev/null || true
                     cp trivyfs.txt security-reports/ 2>/dev/null || true
@@ -292,6 +293,7 @@ pipeline {
                                 <hr>
                                 <h3>Security Scans Performed</h3>
                                 <ul>
+                                    <li><b>✅ Gitleaks Analysis:</b> Gitleals (Secret Scan)</li>
                                     <li><b>✅ SAST Analysis:</b> SonarQube (Static Application Security Testing)</li>
                                     <li><b>✅ Bandit Analysis:</b> Python Security Issue Detector</li>
                                     <li><b>✅ Dependency Scan:</b> pip-audit (Python Package Vulnerabilities)</li>
